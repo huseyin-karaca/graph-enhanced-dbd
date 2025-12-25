@@ -17,7 +17,10 @@ This project implements and compares two approaches for detecting duplicate bug 
 
 ## 🚀 Getting Started (Google Colab)
 
-> **⚡ Quick Start**: For step-by-step Colab instructions with copy-paste cells, see [COLAB_QUICKSTART.md](COLAB_QUICKSTART.md)
+For quick start, you can create a copy of the following Google Colab notebook:
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1zmkY9WIJXK6_2CytcZt5yTbcehKXdtST#scrollTo=ZOtc93Bchk96)
+
 
 ### 1. Clone the Repository
 
@@ -68,24 +71,12 @@ This script will:
 !rm dataset.tar.gz
 ```
 
-### 4. Verify Dataset (Optional but Recommended)
-
-```python
-!python verify_dataset.py
-```
-
-This script will:
-- Check if all required files exist
-- Verify file sizes
-- Confirm graph files are present for GNN training
-- Provide a summary of dataset completeness
-
 ### 5. Run Training
 
 #### Option A: Train Baseline Models (Siamese BERT)
 
 ```python
-!python train-baselines.py
+!python train-ours.py --device gpu --batch_size 64 --epochs 5  --dataset_name thunderbird
 ```
 
 You can modify the baseline model and dataset in `train-baselines.py` (lines 444-456):
@@ -98,16 +89,10 @@ relative_path = "eclipse"    # Dataset name: "eclipse", "thunderbird", etc.
 #### Option B: Train GNN-Enhanced Model (SBERT + GCN)
 
 ```python
-!python train-ours.py
+!python train-ours.py --device gpu --batch_size 64 --epochs 5  --dataset_name thunderbird
 ```
 
-Modify parameters in `train-ours.py` (lines 373-376):
 
-```python
-D_DIR = "datasets/eclipse"  # Dataset directory
-CSV = os.path.join(D_DIR, "tokenized_pairs_train_bert-base-uncased_50000.csv")
-train_bertgnn(CSV, D_DIR, epochs=10, batch_size=64)
-```
 
 ## 📁 Project Structure
 
@@ -294,24 +279,3 @@ Make sure all dependencies are installed:
 ```python
 !pip install -r requirements.txt --upgrade
 ```
-
-## 📚 Citation
-
-If you use this code in your research, please cite our work:
-
-```bibtex
-@misc{cs588-duplicate-detection,
-  title={Duplicate Bug Report Detection using Siamese BERT and Graph Neural Networks},
-  author={Your Name},
-  year={2025},
-  howpublished={CS 588 Term Project}
-}
-```
-
-## 📧 Contact
-
-For questions or issues, please open an issue on GitHub or contact the authors.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
