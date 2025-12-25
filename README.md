@@ -22,8 +22,8 @@ This project implements and compares two approaches for detecting duplicate bug 
 ### 1. Clone the Repository
 
 ```python
-!git clone https://github.com/YOUR_USERNAME/cs588-codes.git
-%cd cs588-codes
+!git clone https://github.com/huseyin-karaca/graph-enhanced-dbd.git
+%cd graph-enhanced-dbd
 ```
 
 ### 2. Install Dependencies
