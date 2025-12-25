@@ -1,0 +1,8 @@
+torch
+transformers
+scikit-learn
+tqdm
+matplotlib
+numpy
+scipy
+torch-geometric  # Eğer GCN kullanılacaksa
