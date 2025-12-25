@@ -2,6 +2,8 @@
 
 ## As part of the course project, we worked hard to complete the proposed task and performed comprehensive set of experiments. Here is the link to check how intense our dedication for the project was:
 
+We share the replication package but we also provide the results and checkpoints that we presented both in presentation and paper.
+
 https://drive.google.com/drive/folders/1AX1-1KC_cgwCqo-A4ecfxoHQWVfm-yV1?usp=sharing
 
 This repository contains the reproducibility package for our CS 588 term project on duplicate bug report detection using Siamese BERT and Graph Neural Networks.
