@@ -1,6 +1,6 @@
 # CS 588 Term Project: Duplicate Bug Report Detection
 
-# As part of the course project, we worked hard to complete the proposed task and performed comprehensive set of experiments. Here is the link to check how intense our dedication for the project was:
+### As part of the course project, we worked hard to complete the proposed task and performed comprehensive set of experiments. Here is the link to check how intense our dedication for the project was:
 
 We share the replication package but we also provide the results and checkpoints that we presented both in presentation and paper.
 
