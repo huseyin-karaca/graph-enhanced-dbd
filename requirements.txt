@@ -6,3 +6,4 @@ matplotlib
 numpy
 scipy
 torch-geometric  # Eğer GCN kullanılacaksa
+gdown
