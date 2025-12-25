@@ -10,23 +10,7 @@ import csv
 from sklearn.metrics import f1_score, recall_score, precision_score, confusion_matrix, ConfusionMatrixDisplay
 from datetime import datetime
 import numpy as np
-
-from dataset import TokenizedDataset
-from sbert import SiameseBERT
-
-
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, random_split
-from torch.optim import AdamW
-from tqdm import tqdm
-import os
-import matplotlib.pyplot as plt
-import torch.nn.functional as F
-import csv
-from sklearn.metrics import f1_score, recall_score, precision_score, confusion_matrix, ConfusionMatrixDisplay
-from datetime import datetime
-import numpy as np
+import argparse
 
 from dataset import TokenizedDataset
 from sbert import SiameseBERT
@@ -40,9 +24,9 @@ def train(
     epochs: int = 3,
     lr: float = 2e-5,
     dataset_name: str = "thunderbird",
+    device: str = "cpu",
 
 ):
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cuda")
     print(f"Using device: {device}")
 
     # 1. Load Dataset
@@ -443,26 +427,48 @@ def train(
     print(f"Test results saved to {test_results_path}")
 
 
-baseline = "codebert-base"
+def main():
+    parser = argparse.ArgumentParser(description="Train a Siamese BERT model.")
+    parser.add_argument("--dataset_name", type=str, default="eclipse", help="The name of the dataset.")
+    parser.add_argument("--model_name", type=str, default="bert-base-uncased", help="The name of the model to use.")
+    parser.add_argument("--batch_size", type=int, default=2, help="The batch size for training.")
+    parser.add_argument("--lr", type=float, default=2e-5, help="The learning rate.")
+    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "gpu"], help="The device to use for training.")
+    parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs.")
 
-if baseline == "codebert-base":
-  model_name = "microsoft/codebert-base"
-elif baseline == "bert-base-uncased":
-  model_name = "bert-base-uncased"
-elif baseline == "roberta-base":
-  model_name = "roberta-base"
+    args = parser.parse_args()
 
-# Adjust paths according to your project structure
-relative_path = "eclipse"
-dataset_dir = f"datasets/{relative_path}/"
-cur_dir = os.getcwd()
-csv_path = os.path.join(cur_dir, dataset_dir, f"tokenized_pairs_train_{baseline}_50000.csv")
+    if args.device == "gpu":
+        if torch.backends.mps.is_available():
+            device = "mps"
+        elif torch.cuda.is_available():
+            device = "cuda"
+        else:
+            print("GPU not available, falling back to CPU.")
+            device = "cpu"
+    else:
+        device = "cpu"
 
-print("CSV path:", csv_path)
+    dataset_dir = f"datasets/{args.dataset_name}/"
+    cur_dir = os.getcwd()
+    csv_path = os.path.join(cur_dir, dataset_dir, f"tokenized_pairs_train_{args.model_name.split('/')[-1]}_50000.csv")
 
-if os.path.exists(csv_path):
-    # You can change batch_size, epochs, lr here if needed
-    train(csv_path, batch_size=2,epochs=5, dataset_name=relative_path, model_name=f"{model_name}")
-else:
-    print(f"Dataset not found at {csv_path}")
+    print("CSV path:", csv_path)
+
+    if os.path.exists(csv_path):
+        train(
+            csv_path,
+            batch_size=args.batch_size,
+            epochs=args.epochs,
+            dataset_name=args.dataset_name,
+            model_name=args.model_name,
+            lr=args.lr,
+            device=device
+        )
+    else:
+        print(f"Dataset not found at {csv_path}")
+
+
+if __name__ == "__main__":
+    main()
 
