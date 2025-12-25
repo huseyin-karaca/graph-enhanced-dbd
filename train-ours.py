@@ -9,7 +9,7 @@
 
 import os
 from datetime import datetime
-
+import argparse
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -31,11 +31,14 @@ from gnn3 import SBERTGCN, normalize_edge_index
 # ---------------------------
 # Device
 # ---------------------------
-def _device() -> torch.device:
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
+def _device(device_str: str) -> torch.device:
+    if device_str == "gpu":
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        if torch.backends.mps.is_available():
+            return torch.device("mps")
+        print("GPU not available, falling back to CPU.")
+        return torch.device("cpu")
     return torch.device("cpu")
 
 
@@ -245,8 +248,8 @@ def _save_confusion_matrix(ts_m, ckpt_dir, test_th=0.5):
 # ---------------------------
 # Main training pipeline
 # ---------------------------
-def train_bertgnn(csv_path, dataset_dir, batch_size=16, epochs=5, lr=2e-5, model_name="sbert-gnn"):
-    device = _device()
+def train_bertgnn(csv_path, dataset_dir, batch_size=16, epochs=5, lr=2e-5, model_name="sbert-gnn", device="cpu"):
+    device = _device(device)
     dataset_name = os.path.basename(os.path.normpath(dataset_dir))
     run_ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     ckpt_dir = os.path.join("checkpoints", f"{model_name}_{dataset_name}", run_ts)
@@ -370,7 +373,33 @@ def train_bertgnn(csv_path, dataset_dir, batch_size=16, epochs=5, lr=2e-5, model
 # ---------------------------
 # Entry
 # ---------------------------
+def main():
+    parser = argparse.ArgumentParser(description="Train a Siamese BERT GCN model.")
+    parser.add_argument("--dataset_name", type=str, default="eclipse", help="The name of the dataset.")
+    parser.add_argument("--model_name", type=str, default="sbert-gnn", help="The name of the model to use.")
+    parser.add_argument("--batch_size", type=int, default=64, help="The batch size for training.")
+    parser.add_argument("--lr", type=float, default=2e-5, help="The learning rate.")
+    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "gpu"], help="The device to use for training.")
+    parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs.")
+
+    args = parser.parse_args()
+
+    dataset_dir = f"datasets/{args.dataset_name}"
+    csv_path = os.path.join(dataset_dir, f"tokenized_pairs_train_bert-base-uncased_50000.csv")
+
+    if not os.path.exists(csv_path):
+        print(f"Dataset not found at {csv_path}")
+        return
+
+    train_bertgnn(
+        csv_path,
+        dataset_dir,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        model_name=args.model_name,
+        lr=args.lr,
+        device=args.device
+    )
+
 if __name__ == "__main__":
-    D_DIR = "datasets/eclipse"
-    CSV = os.path.join(D_DIR, "tokenized_pairs_train_bert-base-uncased_50000.csv")
-    train_bertgnn(CSV, D_DIR, epochs=10, batch_size=64, model_name="sbert-gnn")
+    main()
