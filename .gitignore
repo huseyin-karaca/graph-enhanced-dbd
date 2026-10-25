@@ -73,3 +73,10 @@ tmp/
 .DS_Store
 Thumbs.db
 
+
+# Project page (mkdocs): build output is ignored, sources are not
+site/
+!docs/**
+!overrides/**
+!tools/**
+.venv-docs/

@@ -6,6 +6,10 @@ https://drive.google.com/drive/folders/1AX1-1KC_cgwCqo-A4ecfxoHQWVfm-yV1?usp=sha
 
 This repository contains the reproducibility package for our CS 588 term project on duplicate bug report detection using Siamese BERT and Graph Neural Networks.
 
+**Project page: <https://hkaraca.com/graph-enhanced-dbd/>** — the method, the results and what we would do
+differently, in one page. The page is built from `docs/` with MkDocs Material; `tools/site_figures.py` draws its
+figures and tables from the numbers in the report.
+
 ## 📋 Project Overview
 
 This project implements and compares two approaches for detecting duplicate bug reports:
@@ -80,14 +84,16 @@ This script will:
 #### Option A: Train Baseline Models (Siamese BERT)
 
 ```python
-!python train-ours.py --device gpu --batch_size 64 --epochs 5  --dataset_name thunderbird
+!python train-baselines.py --device gpu --batch_size 64 --epochs 5 --dataset_name thunderbird
 ```
 
-You can modify the baseline model and dataset in `train-baselines.py` (lines 444-456):
+Pick the baseline and the dataset with the flags; both training scripts accept the same ones:
 
-```python
-baseline = "codebert-base"  # Options: "codebert-base", "bert-base-uncased", "roberta-base"
-relative_path = "eclipse"    # Dataset name: "eclipse", "thunderbird", etc.
+```
+--model_name    bert-base-uncased | roberta-base | distilbert-base-uncased | microsoft/codebert-base
+--dataset_name  eclipse | thunderbird
+--device        cpu | gpu
+--batch_size    --epochs    --lr
 ```
 
 #### Option B: Train GNN-Enhanced Model (SBERT + GCN)

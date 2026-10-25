@@ -1,0 +1,42 @@
+{#-
+  The home page: the hero (title, authors, summary, links and the story figure), then the content of index.md in a
+  single reading column. The figure is overrides/partials/hero_figure.html, which tools/site_figures.py writes.
+-#}
+{% extends "main.html" %}
+
+{% block tabs %}
+  {{ super() }}
+  <section class="pg-hero">
+    <div class="md-grid pg-hero__grid">
+      <div class="pg-hero__text">
+        <p class="pg-hero__status">Bilkent University · CS 588 Data Science for Software Engineering · term project, Fall 2025–26</p>
+        <h1>Graph-Enhanced Transformer for Duplicate Bug Report Detection</h1>
+        <p class="pg-hero__subtitle">Semi-supervised: every report joins the graph, labelled or not</p>
+        <p class="pg-hero__authors">Kerem Bayramoğlu · Hüseyin Karaca · Emirhan Koç · Hasan Erkin Ünlü · Rabia Ela Ünlü</p>
+        <p class="pg-hero__affil">Authors in alphabetical order by surname · Bilkent University</p>
+        <p class="pg-hero__tldr">
+          Transformer encoders match bug reports well but learn only from the few pairs a triager has already
+          marked as duplicates. We put the whole corpus into one title-similarity graph and let a two-layer GCN
+          carry that supervision to the reports no pair ever touches. On Eclipse and Thunderbird it ties the
+          transformer baselines for 10–12% more training time.
+        </p>
+        <div class="pg-hero__actions">
+          <a class="pg-btn pg-btn--primary" href="{{ 'assets/paper.pdf' | url }}">Paper</a>
+          <a class="pg-btn" href="{{ config.repo_url }}">Code</a>
+          <a class="pg-btn" href="https://colab.research.google.com/drive/1zmkY9WIJXK6_2CytcZt5yTbcehKXdtST">Colab</a>
+          <a class="pg-btn" href="#how-to-run-it">Run it</a>
+          <a class="pg-btn" href="#citation">Cite</a>
+        </div>
+      </div>
+      {% include "partials/hero_figure.html" %}
+    </div>
+  </section>
+{% endblock %}
+
+{% block container %}
+  <div class="md-content pg-home" data-md-component="content">
+    <article class="md-content__inner md-typeset">
+      {{ page.content }}
+    </article>
+  </div>
+{% endblock %}
