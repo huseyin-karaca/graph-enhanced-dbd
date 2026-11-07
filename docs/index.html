@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Graph-Enhanced Transformer for Duplicate Bug Report Detection</title>
+<meta name="description" content="A semi-supervised duplicate bug report detector that puts every report, labelled or not, into one title-similarity graph and lets a GCN carry supervision to the unlabelled rest.">
+<link rel="canonical" href="https://hkaraca.com/graph-enhanced-dbd/">
+<meta property="og:title" content="Graph-Enhanced Transformer for Duplicate Bug Report Detection">
+<meta property="og:description" content="Every report becomes a node in a title-similarity graph, so reports in no training pair still move when their neighbours do.">
+<meta property="og:image" content="https://hkaraca.com/graph-enhanced-dbd/assets/teaser.png">
+<meta name="citation_title" content="Graph Enhanced Transformer for Semi-Supervised Duplicate Bug Report Detection">
+<meta name="citation_author" content="Bayramoglu, Kerem">
+<meta name="citation_author" content="Karaca, Huseyin">
+<meta name="citation_author" content="Koc, Emirhan">
+<meta name="citation_author" content="Unlu, Hasan Erkin">
+<meta name="citation_author" content="Unlu, Rabia Ela">
+<meta name="citation_publication_date" content="2026">
+<meta name="citation_pdf_url" content="https://hkaraca.com/graph-enhanced-dbd/assets/paper.pdf">
+<link rel="icon" href="assets/favicon.svg">
+<style>
+:root{--bg:#fff;--ink:#1c2230;--ink2:#434a5a;--muted:#6b7180;--faint:#9ba1ad;--line:#c9ccd3;--wash:#f6f7f9;--accent:#3355d6;--tint:#eef1fc;--on-accent:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#171a21;--ink:#e7e9ee;--ink2:#c2c7d1;--muted:#9aa0ad;--faint:#6d7484;--line:#3b414d;--wash:#1c2028;--accent:#5b78ee;--tint:#232c4d;--on-accent:#fff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:56px 20px 80px}
+header{text-align:center;margin-bottom:32px}
+.venue{color:var(--muted);font-size:14px;margin:0 0 8px}
+h1{font-size:40px;line-height:1.1;margin:0}
+.title{font-size:20px;color:var(--ink2);margin:6px 0 16px}
+.authors{margin:0}.affil{color:var(--muted);margin:0 0 20px}
+.links a{display:inline-block;margin:4px;padding:6px 16px;border:1px solid var(--line);border-radius:999px;color:var(--ink);text-decoration:none}
+.links a:hover{border-color:var(--ink)}
+h2{font-size:24px;margin:48px 0 12px}h3{font-size:18px;margin:28px 0 8px}
+a{color:var(--accent)}
+figure{margin:20px 0}figure svg,figure img{width:100%;height:auto;display:block}
+figcaption{color:var(--muted);font-size:15px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}
+tr.ours td{font-weight:600;background:var(--tint)}
+.tall{display:none}@media (max-width:600px){.wide{display:none}.tall{display:block}}
+audio{width:100%;height:36px}
+pre{background:var(--wash);padding:16px;overflow-x:auto;font-size:13px;border-radius:6px}
+button{font:inherit;font-size:14px;padding:4px 12px;border:1px solid var(--line);border-radius:6px;background:none;color:var(--ink);cursor:pointer}
+footer{color:var(--muted);font-size:14px;text-align:center;margin-top:64px}
+.f-ink{fill:var(--ink)}.s-ink{stroke:var(--ink)}.f-ink2{fill:var(--ink2)}.s-ink2{stroke:var(--ink2)}
+.f-muted{fill:var(--muted)}.s-muted{stroke:var(--muted)}.f-faint{fill:var(--faint)}.s-faint{stroke:var(--faint)}
+.f-line{fill:var(--line)}.s-line{stroke:var(--line)}.f-bg{fill:var(--bg)}.s-bg{stroke:var(--bg)}
+.f-accent{fill:var(--accent)}.s-accent{stroke:var(--accent)}.f-tint{fill:var(--tint)}.f-on-accent{fill:var(--on-accent)}
+</style>
+</head>
+<body><main>
+<header>
+  <p class="venue">Course project · CS 588, Bilkent · 2025–26</p>
+  <h1>Graph-Enhanced DBRD</h1>
+  <p class="title">Graph Enhanced Transformer for Semi-Supervised Duplicate Bug Report Detection</p>
+  <p class="authors">Kerem Bayramoğlu, <a href="https://hkaraca.com/">Hüseyin Karaca</a>, Emirhan Koç, Hasan Erkin Ünlü, Rabia Ela Ünlü</p>
+  <p class="affil">Bilkent University · listed alphabetically by surname</p>
+  <p class="links"><a href="assets/paper.pdf">Paper</a><a href="https://github.com/huseyin-karaca/graph-enhanced-dbd">Code</a><a href="https://hkaraca.com/assets/pdf/graph-enhanced-dbd-slides.pdf">Slides</a></p>
+</header>
+
+<figure><svg viewBox="0 0 560 420" role="img" aria-label="A weight-tied BERT encodes each report's title and description and projects the CLS vector to 128 dimensions. Separately, every report in the corpus becomes a node in a graph whose edges come from title-embedding similarity after reduction to ten principal components. A two-layer graph convolutional network propagates over that graph. The two embeddings are mixed, and a pair is called a duplicate when their cosine similarity passes a threshold tuned on validation.">
+<rect x="20" y="14" width="250" height="66" rx="6" class="f-bg s-line"/>
+<text x="38" y="43" class="f-ink" font-size="19">Siamese BERT</text>
+<text x="38" y="69" class="f-muted" font-size="18">labelled pairs only</text>
+<rect x="290" y="14" width="250" height="66" rx="6" class="f-tint s-accent"/>
+<text x="308" y="43" class="f-accent" font-size="19" font-weight="600">Title graph</text>
+<text x="308" y="69" class="f-muted" font-size="18">all reports, PCA to 10-d</text>
+<path d="M145 80V106" class="s-accent" fill="none" stroke-width="2"/><path d="M139 100l6 8 6-8" class="s-accent" fill="none" stroke-width="2"/>
+<path d="M415 80V106" class="s-accent" fill="none" stroke-width="2"/><path d="M409 100l6 8 6-8" class="s-accent" fill="none" stroke-width="2"/>
+<rect x="20" y="112" width="250" height="48" rx="6" class="f-bg s-line"/>
+<text x="38" y="142" class="f-ink" font-size="18">CLS → 128 dims</text>
+<rect x="290" y="112" width="250" height="48" rx="6" class="f-bg s-line"/>
+<text x="308" y="142" class="f-ink" font-size="18">two-layer GCN</text>
+<path d="M145 160V200H270" class="s-accent" fill="none" stroke-width="2"/>
+<path d="M415 160V200H290" class="s-accent" fill="none" stroke-width="2"/>
+<path d="M280 200V226" class="s-accent" fill="none" stroke-width="2"/><path d="M274 220l6 8 6-8" class="s-accent" fill="none" stroke-width="2"/>
+<rect x="20" y="232" width="520" height="48" rx="6" class="f-tint s-accent"/>
+<text x="38" y="262" class="f-accent" font-size="19" font-weight="600">z = λ·z_bert + (1 − λ)·z_gcn</text>
+<path d="M280 280V306" class="s-accent" fill="none" stroke-width="2"/><path d="M274 300l6 8 6-8" class="s-accent" fill="none" stroke-width="2"/>
+<rect x="20" y="312" width="520" height="66" rx="6" class="f-bg s-line"/>
+<text x="38" y="341" class="f-ink" font-size="19">duplicate when cos(zᵢ, zⱼ) ≥ θ</text>
+<text x="38" y="367" class="f-muted" font-size="18">cosine embedding loss; θ tuned on validation</text>
+</svg><figcaption>A report that appears in no training pair still sits beside reports that do, and still moves when they do.</figcaption></figure>
+
+<h2>Abstract</h2>
+<p><strong>Context.</strong> Duplicate bug report detection aims to identify bug reports that describe the same underlying problem or can be resolved by the same fix. In large-scale repositories, duplicates increase triage workload and waste developer time. While transformer-based sentence encoders improve semantic matching compared to classical IR baselines, they rely on labeled duplicate pairs, which are typically scarce in real-world repositories. Moreover, exhaustive pairwise training is computationally infeasible and cannot effectively incorporate the full pool of unlabeled reports.</p>
+<p><strong>Method.</strong> We propose a semi-supervised Graph-Enhanced Transformer framework that couples transformer-based semantic encoding with graph-based message passing. We represent the full corpus (train/validation/test) as nodes in a title-similarity graph built from bert-base-uncased title embeddings; to obtain a more informative similarity geometry, we apply PCA before computing similarities. During training, transformer [CLS] embeddings are projected to a compact space and injected into a two-layer Graph Convolutional Network (GCN), enabling information propagation from supervised nodes to the unlabeled portion of the corpus. Supervision is applied only on a feasible subset of labeled positive pairs and sampled negatives via a cosine embedding objective, while the remaining unlabeled reports contribute indirectly through graph propagation.</p>
+<p><strong>Results.</strong> Experiments on Eclipse Platform and Mozilla Thunderbird show that graph propagation enables the model to benefit from unlabeled reports, yielding stable training dynamics and competitive classification performance relative to transformer-only baselines.</p>
+
+<h2 id="method">Method</h2>
+<p>Cosine similarity on the raw 768-dimensional title embeddings is almost useless here, because unrelated bugs score high; reducing to ten principal components first is what makes the similarity separate, and it ties the graph to the training distribution. Validation and test nodes sit in the graph so messages can flow through them, which makes the setup transductive. The GCN can be dropped at inference and the transformer used alone for retrieval, which is what a deployment would do.</p>
+
+<h2 id="results">Results</h2>
+
+<h3>Matches four transformer baselines, with the best Eclipse recall at 0.935</h3>
+<figure>
+<table>
+<thead><tr><th>Model</th><th>Eclipse P</th><th>Eclipse R</th><th>Eclipse F1</th><th>Thunderbird F1</th></tr></thead>
+<tbody>
+<tr><td>BERT</td><td>0.921</td><td>0.933</td><td>0.927</td><td>0.957</td></tr>
+<tr><td>RoBERTa</td><td>0.918</td><td>0.930</td><td>0.924</td><td>0.957</td></tr>
+<tr><td>DistilBERT</td><td>0.936</td><td>0.921</td><td>0.929</td><td>0.957</td></tr>
+<tr><td>CodeBERT</td><td>0.920</td><td>0.928</td><td>0.924</td><td>0.916</td></tr>
+<tr class="ours"><td>Ours</td><td>0.913</td><td>0.935</td><td>0.924</td><td>0.957</td></tr>
+</tbody>
+</table>
+<figcaption>Held-out test pairs, one split, no significance test. The graph branch costs nothing in accuracy and does not win: these runs use about 80% of the training labels, so the label-scarce regime the architecture targets is untested.</figcaption>
+</figure>
+
+<h3>Costs 10–12% more time per epoch</h3>
+<figure>
+<table>
+<thead><tr><th>Model</th><th>Eclipse min/epoch</th><th>rel.</th><th>Thunderbird min/epoch</th><th>rel.</th></tr></thead>
+<tbody>
+<tr><td>BERT</td><td>16.2</td><td>1.00</td><td>10.1</td><td>1.00</td></tr>
+<tr><td>RoBERTa</td><td>16.3</td><td>1.01</td><td>10.2</td><td>1.01</td></tr>
+<tr><td>DistilBERT</td><td>15.9</td><td>0.98</td><td>9.8</td><td>0.97</td></tr>
+<tr><td>CodeBERT</td><td>16.5</td><td>1.02</td><td>10.3</td><td>1.02</td></tr>
+<tr class="ours"><td>Ours</td><td>18.1</td><td>1.12</td><td>11.1</td><td>1.10</td></tr>
+</tbody>
+</table>
+<figcaption>One A100 (80 GB), relative to BERT on the same corpus. The overhead holds between the 68,124-report Eclipse corpus and the 26,040-report Thunderbird one.</figcaption>
+</figure>
+
+<h2 id="citation">BibTeX</h2>
+<pre id="bib">@misc{bayramoglu2026graphdbrd,
+  author       = {Bayramo{\u{g}}lu, Kerem and Karaca, H{\"u}seyin and
+                  Ko{\c{c}}, Emirhan and {\"U}nl{\"u}, Hasan Erkin and
+                  {\"U}nl{\"u}, Rabia Ela},
+  title        = {Graph Enhanced Transformer for Semi-Supervised
+                  Duplicate Bug Report Detection},
+  year         = {2026},
+  note         = {CS 588 Data Science for Software Engineering term
+                  project, Bilkent University},
+  howpublished = {\url{https://hkaraca.com/graph-enhanced-dbd/}}
+}</pre>
+<button onclick="navigator.clipboard.writeText(document.getElementById('bib').textContent)">Copy</button>
+<footer><a href="https://hkaraca.com/">Hüseyin Karaca</a></footer>
+</main></body>
+</html>
