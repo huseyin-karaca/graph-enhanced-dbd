@@ -7,8 +7,9 @@ https://drive.google.com/drive/folders/1AX1-1KC_cgwCqo-A4ecfxoHQWVfm-yV1?usp=sha
 This repository contains the reproducibility package for our CS 588 term project on duplicate bug report detection using Siamese BERT and Graph Neural Networks.
 
 **Project page: <https://hkaraca.com/graph-enhanced-dbd/>** — the method and the headline results in one
-page. It is a single static file, `docs/index.html`, with no build step; the main site's `Deploy site`
-workflow copies `docs/` into the published tree. `notes/project-report.md` keeps the longer write-up the
+page. It is a single static file, `docs/index.html`, with no build step; this repository publishes
+`docs/` itself through GitHub Pages (`.github/workflows/pages.yml`). The hero figure's source is
+`figures/figure_v2.js`. `notes/project-report.md` keeps the longer write-up the
 page was condensed from, including the confusion matrices, the convergence curves, the similarity
 statistics and the list of what we would fix.
 

@@ -1,7 +1,7 @@
 """Draw the figures and tables of the project notes.
 
 All numbers live in the DATA section below and are taken from the round-2 report, so the notes and the paper
-cannot drift apart. The published page (docs/index.html) is hand-written and carries only two of these tables;
+cannot drift apart. The published page (docs/index.html) is hand-written and carries three of these tables;
 this script keeps the full set, which notes/project-report.md embeds.
 
 Every figure is written as inline SVG, each mark carrying a fallback hex from the light theme plus one of the
