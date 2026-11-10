@@ -42,7 +42,7 @@ MANIFEST
 venv/
 env/
 ENV/
-.venv
+.venv*/
 
 # IDE
 .vscode/
@@ -57,9 +57,6 @@ ENV/
 *.png
 *.txt
 !requirements.txt
-!README.md
-!COLAB_QUICKSTART.md
-!CHANGES.md
 
 # PyTorch
 *.ckpt
@@ -74,9 +71,5 @@ tmp/
 Thumbs.db
 
 
-# Project page (mkdocs): build output is ignored, sources are not
-site/
+# Project page: docs/ is published as is (its assets include .png files)
 !docs/**
-!overrides/**
-!tools/**
-.venv-docs/

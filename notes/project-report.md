@@ -2,7 +2,7 @@
 
 Project notes. The published page is `docs/index.html`; this file keeps the longer
 write-up it was condensed from. Its figures and tables are embedded copies of
-`notes/snippets/`, which `tools/site_figures.py` regenerates from the numbers in
+`notes/snippets/`, which `figures/site_figures.py` regenerates from the numbers in
 the report — re-embed them after running it.
 
 ## The problem
@@ -50,7 +50,7 @@ The parts worth naming:
   768-dimensional vectors is almost useless, because unrelated bugs score high. Reducing to **ten** principal
   components first gives a similarity that actually separates. Edges come from that reduced space, with no
   threshold applied.
-- **Propagation.** `gnn3.py` is a plain GCN — self-loops, symmetric normalisation, 128-d out — over node features
+- **Propagation.** `src/gnn.py` is a plain GCN — self-loops, symmetric normalisation, 128-d out — over node features
   injected from the transformer.
 - **Fusion and loss.** The two embeddings are mixed, `z = λ·z_tr + (1−λ)·z_gnn`, and trained with a cosine
   embedding loss: pull duplicates together, push sampled negatives apart beyond a margin.
@@ -213,7 +213,7 @@ experiments.
 ```python
 !git clone https://github.com/huseyin-karaca/graph-enhanced-dbd.git
 %cd graph-enhanced-dbd
-!python colab_setup.py   # deps, dataset, extraction
+!python src/download_data.py   # dataset, extraction
 ```
 
 Or open the [prepared notebook](https://colab.research.google.com/drive/1zmkY9WIJXK6_2CytcZt5yTbcehKXdtST).
@@ -232,11 +232,11 @@ Then train either side of the comparison. Both scripts take the same flags:
 
 ```bash
 # the graph-enhanced model
-python train-ours.py --device gpu --batch_size 64 --epochs 5 \
+python src/train_ours.py --device gpu --batch_size 64 --epochs 5 \
     --dataset_name thunderbird
 
 # a transformer baseline
-python train-baselines.py --device gpu --batch_size 64 --epochs 5 \
+python src/train_baselines.py --device gpu --batch_size 64 --epochs 5 \
     --dataset_name eclipse --model_name roberta-base
 ```
 

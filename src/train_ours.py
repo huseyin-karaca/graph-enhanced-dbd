@@ -25,7 +25,7 @@ from sklearn.metrics import f1_score, precision_score, recall_score, confusion_m
 # Local Imports
 from dataset import TokenizedDataset
 from sbert import SiameseBERT
-from gnn3 import SBERTGCN, normalize_edge_index
+from gnn import SBERTGCN, normalize_edge_index
 
 
 # ---------------------------

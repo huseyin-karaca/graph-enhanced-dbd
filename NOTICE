@@ -1,0 +1,13 @@
+Graph Enhanced Transformer for Semi-Supervised Duplicate Bug Report Detection
+Copyright 2025-2026 Emirhan Koç, Hüseyin Karaca, Kerem Bayramoğlu,
+Hasan Erkin Ünlü and Rabia Ela Ünlü (Bilkent University)
+
+This product includes software developed by the authors above.
+https://github.com/huseyin-karaca/graph-enhanced-dbd
+
+The method, experiments and results are described in the accompanying paper:
+https://hkaraca.com/graph-enhanced-dbd/
+Work that uses or builds on this code or method should cite that paper.
+
+Under Section 4(d) of the Apache License 2.0, any redistribution of this
+software or of a derivative work must keep this NOTICE file.

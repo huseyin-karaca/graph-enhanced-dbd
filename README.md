@@ -1,294 +1,106 @@
-# CS 588 Term Project: Duplicate Bug Report Detection
+<div align="center">
 
-####  As part of the course project, we worked hard to complete the proposed task and performed comprehensive set of experiments. There are lots of ascepts of the project to improve and produce valuable results. Here is the link to check how intense our dedication for the project was. We share the replication package but we also provide the results and checkpoints that we presented both in presentation and paper. Each python and csv file in the repo is employed in a task.
+<h1>Graph Enhanced Transformer for Semi-Supervised Duplicate Bug Report Detection</h1>
 
-https://drive.google.com/drive/folders/1AX1-1KC_cgwCqo-A4ecfxoHQWVfm-yV1?usp=sharing
+**Course project · CS 588, Bilkent · 2025–26**
 
-This repository contains the reproducibility package for our CS 588 term project on duplicate bug report detection using Siamese BERT and Graph Neural Networks.
+Emirhan Koç, [Hüseyin Karaca](https://hkaraca.com/), Kerem Bayramoğlu, Hasan Erkin Ünlü, Rabia Ela Ünlü<br>
+Bilkent University
 
-**Project page: <https://hkaraca.com/graph-enhanced-dbd/>** — the method and the headline results in one
-page. It is a single static file, `docs/index.html`, with no build step; this repository publishes
-`docs/` itself through GitHub Pages (`.github/workflows/pages.yml`). The hero figure's source is
-`figures/figure_v2.js`. `notes/project-report.md` keeps the longer write-up the
-page was condensed from, including the confusion matrices, the convergence curves, the similarity
-statistics and the list of what we would fix.
+[Paper](https://hkaraca.com/graph-enhanced-dbd/assets/paper.pdf) ·
+[Project page](https://hkaraca.com/graph-enhanced-dbd/) ·
+[Slides](https://hkaraca.com/assets/pdf/graph-enhanced-dbd-slides.pdf) ·
+[Reproducibility](https://colab.research.google.com/drive/1zmkY9WIJXK6_2CytcZt5yTbcehKXdtST) ·
+[Checkpoints](https://drive.google.com/drive/folders/1AX1-1KC_cgwCqo-A4ecfxoHQWVfm-yV1?usp=sharing)
 
-## 📋 Project Overview
+</div>
 
-This project implements and compares two approaches for detecting duplicate bug reports:
+This is a semi-supervised duplicate bug report detector. It places every report of a corpus in one title-similarity graph and trains a Siamese transformer through a two-layer GCN, so labelled pairs also shape the unlabelled reports. On Mozilla Thunderbird it reaches F1 0.957, tying BERT, RoBERTa and DistilBERT, and it leads Eclipse recall at 0.935, for 10–12 % extra training time. This repository holds the code of our CS 588 term project: the model, four transformer baselines, the data and the checkpoints behind the paper's tables.
 
-1. **Baseline Models** (`train-baselines.py`): Siamese BERT architecture with various pretrained models:
-   - CodeBERT (`microsoft/codebert-base`)
-   - BERT (`bert-base-uncased`)
-   - RoBERTa (`roberta-base`)
+<p align="center"><img src="docs/assets/teaser.png" width="800" alt="Pipeline: bug report pairs are tokenized, encoded by a shared transformer, and joined in one graph of all reports."></p>
+<p align="center"><em>Labelled pairs train the encoder, and every report joins one graph, so supervision reaches unlabelled reports too.</em></p>
 
-2. **Proposed Model** (`train-ours.py`): Siamese BERT + Graph Convolutional Network (GCN)
-   - Combines semantic similarity from BERT with structural information from bug report graphs
-   - Uses GCN to propagate information through the bug report network
+## Installation
 
-## 🚀 Getting Started (Google Colab)
+Experiments ran on one NVIDIA A100 (80 GB); Google Colab GPUs run the same scripts.
+<!-- TODO: tested Python / PyTorch / CUDA versions -->
 
-For quick start, you can create a copy of the following Google Colab notebook:
-
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1zmkY9WIJXK6_2CytcZt5yTbcehKXdtST#scrollTo=ZOtc93Bchk96)
-
-
-### 1. Clone the Repository
-
-```python
-!git clone https://github.com/huseyin-karaca/graph-enhanced-dbd.git
-%cd graph-enhanced-dbd
+```bash
+git clone https://github.com/huseyin-karaca/graph-enhanced-dbd.git && cd graph-enhanced-dbd
+pip install -r requirements.txt
+python src/download_data.py    # fetches dataset.tar.gz and extracts it to datasets/
 ```
 
-### 2. Install Dependencies
+## Quick start
 
-```python
-!pip install -r requirements.txt
+Train the graph-enhanced model on Thunderbird. Run it from the repository root.
+
+```bash
+python src/train_ours.py --dataset_name thunderbird --device gpu --batch_size 64 --epochs 5
+# ~1 h on one A100; Table 5 reports test F1 0.957
 ```
 
-### 3. Download and Extract Dataset
+The run writes `best_model.pth`, per-epoch curves and the test confusion matrix to `checkpoints/sbert-gnn_thunderbird/<timestamp>/`.
 
-The dataset is hosted on Google Drive and needs to be downloaded and extracted.
+## Data
 
-**Option A: Automated Setup (Recommended)**
+Both corpora come from the Eclipse and Mozilla defect tracking dataset ([Lamkanfi et al., MSR 2013](https://doi.org/10.1109/MSR.2013.6624028)). `src/download_data.py` places the preprocessed files as:
 
-```python
-!python colab_setup.py
+```text
+datasets/
+├── eclipse/        # 68,124 reports, 87,224 labelled pairs
+│   ├── tokenized_pairs_train_<model>_50000.csv
+│   ├── graph_adj.npz              # title-similarity graph over all reports
+│   └── graph_adj_node_ids.npy     # issue ID of each graph node
+└── thunderbird/    # 26,040 reports, 53,156 labelled pairs
 ```
 
-This script will:
-- Install all dependencies
-- Download the dataset from Google Drive
-- Extract it to the `datasets/` directory
-- Verify the installation
-- Clean up temporary files
+There is one tokenized CSV per encoder (`bert-base-uncased`, `roberta-base`, `distilbert-base-uncased`, `codebert-base`). Each row is a report pair with token IDs, attention masks and a 0/1 duplicate label.
 
-**Option B: Manual Setup**
+## Reproducing the paper
 
-```python
-# Download dataset using gdown
-!gdown https://drive.google.com/uc?id=1ef68tggrWtdrUv-Bb2l-E2yUVlo8yKgA
+Every row of Tables 4 and 5 is one training run. Swap `--dataset_name eclipse` for `thunderbird` to get the second column group.
 
-# Create datasets directory if it doesn't exist
-!mkdir -p datasets
+```bash
+# Table 5, "Ours"
+python src/train_ours.py --dataset_name eclipse --device gpu --batch_size 64 --epochs 5
 
-# Extract the dataset
-!tar -xzf dataset.tar.gz -C datasets/
-
-# Verify extraction
-!ls -la datasets/
-
-# Clean up
-!rm dataset.tar.gz
+# Table 5, baselines: pass the encoder from the table below
+python src/train_baselines.py --dataset_name eclipse --device gpu --batch_size 64 --epochs 5 \
+    --model_name roberta-base
 ```
 
-### 5. Run Training
+| Model | `--model_name` | Eclipse P / R / F1 | Thunderbird P / R / F1 | min/epoch (Ecl. · Thb.) |
+|---|---|---|---|---|
+| BERT | `bert-base-uncased` | 0.921 / 0.933 / 0.927 | 0.953 / 0.961 / 0.957 | 16.2 · 10.1 |
+| RoBERTa | `roberta-base` | 0.918 / 0.930 / 0.924 | 0.946 / 0.968 / 0.957 | 16.3 · 10.2 |
+| DistilBERT | `distilbert-base-uncased` | 0.936 / 0.921 / 0.929 | 0.950 / 0.965 / 0.957 | 15.9 · 9.8 |
+| CodeBERT | `microsoft/codebert-base` | 0.920 / 0.928 / 0.924 | 0.902 / 0.930 / 0.916 | 16.5 · 10.3 |
+| **Ours** | (`train_ours.py`) | **0.913 / 0.935 / 0.924** | **0.949 / 0.966 / 0.957** | **18.1 · 11.1** |
 
-#### Option A: Train Baseline Models (Siamese BERT)
+Test-pair scores and minutes per epoch on one A100 (80 GB). Both scripts split the pairs 60/20/20 at random on each run and pick the decision threshold on the validation split. Baselines also write `test_results.txt` to their run folder.
 
-```python
-!python train-baselines.py --device gpu --batch_size 64 --epochs 5 --dataset_name thunderbird
+`python figures/site_figures.py` redraws the figures and tables in `notes/project-report.md`, the longer project write-up.
+
+## Repository layout
+
+```text
+src/
+├── train_ours.py        # Siamese transformer + GCN (the proposed model)
+├── train_baselines.py   # Siamese transformer baselines
+├── gnn.py               # two-layer GCN and graph normalisation
+├── sbert.py             # shared encoder with a 128-d projection head
+├── dataset.py           # tokenized pair loader
+└── download_data.py     # dataset download and extraction
+docs/                    # project page, served at hkaraca.com/graph-enhanced-dbd
+figures/                 # overview figure source and notes figures
+notes/                   # extended project report
 ```
 
-Pick the baseline and the dataset with the flags; both training scripts accept the same ones:
+## License
 
-```
---model_name    bert-base-uncased | roberta-base | distilbert-base-uncased | microsoft/codebert-base
---dataset_name  eclipse | thunderbird
---device        cpu | gpu
---batch_size    --epochs    --lr
-```
+Code: [Apache 2.0](LICENSE). Redistributions and derivative works must keep the [NOTICE](NOTICE) file, which credits the authors and the paper. Work that builds on this code or method should cite the paper. The Eclipse and Mozilla data keep their original terms.
 
-#### Option B: Train GNN-Enhanced Model (SBERT + GCN)
+## Acknowledgements
 
-```python
-!python train-ours.py --device gpu --batch_size 64 --epochs 5  --dataset_name thunderbird
-```
-
-
-
-## 📁 Project Structure
-
-```
-cs588-codes/
-├── README.md                          # This file
-├── COLAB_QUICKSTART.md               # Quick start guide for Google Colab
-├── requirements.txt                   # Python dependencies
-├── colab_setup.py                    # Automated Colab setup script
-├── verify_dataset.py                 # Dataset verification script
-├── dataset.py                         # Dataset loading utilities
-├── sbert.py                          # Siamese BERT model
-├── gnn3.py                           # GCN model architecture
-├── train-baselines.py                # Training script for baseline models
-├── train-ours.py                     # Training script for GNN-enhanced model
-├── datasets/                         # Dataset directory (created after extraction)
-│   ├── eclipse/
-│   │   ├── tokenized_pairs_train_*.csv
-│   │   ├── graph_adj.npz
-│   │   └── graph_adj_node_ids.npy
-│   └── [other datasets]/
-├── checkpoints/                      # Model checkpoints and results (auto-created)
-│   └── {model_name}_{dataset_name}/
-│       └── {YYYY-MM-DD_HH-MM-SS}/
-│           ├── sbert_epoch_*.pth     # Model checkpoints per epoch
-│           ├── best_model.pth        # Best model (GNN only)
-│           ├── embedding_dict.pt     # Node embeddings
-│           ├── test_results.txt      # Final test metrics
-│           ├── train_step_losses.csv # Per-iteration training losses
-│           ├── confusion_matrix_*.png # Confusion matrices
-│           ├── val_samples_*.txt     # Validation samples
-│           └── *.png                 # Training curves and plots
-└── colab_setup.py                    # Automated Colab setup script
-```
-
-## 📊 Output Structure
-
-Both training scripts automatically organize outputs in a structured manner:
-
-### Baseline Models (`train-baselines.py`)
-
-Outputs are saved to: `checkpoints/{model_name}_{dataset_name}/{YYYY-MM-DD_HH-MM-SS}/`
-
-Example: `checkpoints/codebert-base_eclipse/2025-12-25_14-30-00/`
-
-- **Model Checkpoints**: `sbert_epoch_{epoch}.pth` - PyTorch model state for each epoch
-- **Embeddings**: `embedding_dict.pt` - Issue ID to embedding mapping
-- **Metrics**:
-  - `test_results.txt` - Final test set performance metrics
-  - `train_step_losses.csv` - Per-iteration training losses
-- **Visualizations**:
-  - `loss_acc_pr_rc_f1_curve.png` - Training curves for all metrics
-  - `confusion_matrix_last_epoch.png` - Training confusion matrix
-  - `confusion_matrix_test.png` - Test set confusion matrix
-- **Validation Logs**: `val_samples_epoch_{epoch}.txt` - Similarity scores for validation pairs
-
-### GNN Model (`train-ours.py`)
-
-Outputs are saved to: `checkpoints/{model_name}_{dataset_name}/{YYYY-MM-DD_HH-MM-SS}/`
-
-Example: `checkpoints/sbert-gnn_eclipse/2025-12-25_14-30-00/`
-
-- **Model Checkpoints**: `best_model.pth` - Best model based on validation F1
-- **Visualizations**:
-  - `epoch_loss.png`, `epoch_f1.png`, `epoch_acc.png` - Training curves
-  - `epoch_precision.png`, `epoch_recall.png` - Precision/recall curves
-  - `test_confusion_matrix.png` - Test set confusion matrix
-
-## 🔧 Configuration
-
-### Hyperparameters
-
-#### Baseline Models (`train-baselines.py`)
-
-```python
-train(
-    csv_path="path/to/data.csv",
-    model_name="bert-base-uncased",  # Pretrained model
-    batch_size=1024,                 # Batch size
-    epochs=3,                        # Number of epochs
-    lr=2e-5,                         # Learning rate
-    dataset_name="thunderbird"       # Dataset identifier
-)
-```
-
-#### GNN Model (`train-ours.py`)
-
-```python
-train_bertgnn(
-    csv_path="path/to/data.csv",
-    dataset_dir="datasets/eclipse",  # Must contain graph files
-    batch_size=16,                   # Batch size
-    epochs=5,                        # Number of epochs
-    lr=2e-5                          # Learning rate
-)
-```
-
-## 📈 Evaluation Metrics
-
-Both models are evaluated using:
-
-- **Accuracy**: Overall classification accuracy
-- **F1 Score**: Harmonic mean of precision and recall
-- **Precision**: Ratio of true positives to predicted positives
-- **Recall**: Ratio of true positives to actual positives
-- **Confusion Matrix**: Visual representation of classification results
-
-The models use **adaptive thresholding** on the validation set to find the optimal similarity threshold for classification.
-
-## 💾 Dataset Format
-
-### Required Files
-
-1. **Tokenized Pairs CSV**: `tokenized_pairs_train_{model}_{size}.csv`
-   - Columns: `issue_id1`, `issue_id2`, `input_ids1`, `attention_mask1`, `input_ids2`, `attention_mask2`, `label`
-   - Labels: 0 (not duplicate), 1 (duplicate)
-
-2. **Graph Files** (for GNN model only):
-   - `graph_adj.npz`: Sparse adjacency matrix
-   - `graph_adj_node_ids.npy`: Node ID mapping
-
-## 🔍 Model Architecture
-
-### Siamese BERT
-
-- Shared BERT encoder for both bug reports
-- Projection layer to 128-dimensional embeddings
-- Cosine similarity for duplicate detection
-- Contrastive loss function (CosineEmbeddingLoss)
-
-### SBERT + GCN
-
-- Siamese BERT for semantic understanding
-- 2-layer GCN for structural information
-- Weighted fusion: `λ * BERT_emb + (1-λ) * GCN_emb`
-- Persistent embedding table updated during training
-
-## 📝 Requirements
-
-See `requirements.txt` for the complete list. Main dependencies:
-
-- `torch` - PyTorch framework
-- `transformers` - Hugging Face transformers (BERT, RoBERTa, CodeBERT)
-- `torch-geometric` - Graph neural network library
-- `scikit-learn` - Metrics and evaluation
-- `gdown` - Google Drive downloader
-- `tqdm` - Progress bars
-- `matplotlib` - Visualization
-- `scipy` - Sparse matrix operations
-
-## 🎯 Results
-
-Training progress is displayed in real-time with progress bars showing:
-- Batch-level: Loss, Accuracy, F1 Score
-- Epoch-level: Complete metrics summary
-- Validation: Adaptive threshold selection
-- Test: Final evaluation with best model
-
-Example output:
-```
-Epoch 1/5 | Val F1: 0.8234 | Val Prec: 0.8156 | Val Rec: 0.8313 | Next Th: 0.65
-Test | F1: 0.8456 | Prec: 0.8389 | Rec: 0.8524 | Th: 0.65
-```
-
-## 🐛 Troubleshooting
-
-### Out of Memory Errors
-
-If you encounter CUDA OOM errors, try:
-- Reducing `batch_size` in the training function
-- Using gradient accumulation
-- Clearing GPU cache: `torch.cuda.empty_cache()`
-
-### Missing Dataset Files
-
-Ensure you've:
-1. Downloaded the dataset using `gdown`
-2. Extracted to the correct location (`datasets/`)
-3. Verified the CSV and graph files exist
-
-### Import Errors
-
-Make sure all dependencies are installed:
-```python
-!pip install -r requirements.txt --upgrade
-```
+Built on [Hugging Face Transformers](https://github.com/huggingface/transformers) and [PyTorch Geometric](https://github.com/pyg-team/pytorch_geometric), with data from the [Eclipse and Mozilla defect tracking dataset](https://doi.org/10.1109/MSR.2013.6624028).

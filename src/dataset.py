@@ -38,8 +38,7 @@ if __name__ == "__main__":
     
     relative_path = "eclipse"
     dataset_dir = f"datasets/{relative_path}/"
-    cur_dir = os.path.dirname(__file__)
-    csv_path = os.path.join(cur_dir, dataset_dir, "tokenized_pairs.csv")
+    csv_path = os.path.join(dataset_dir, "tokenized_pairs_train_bert-base-uncased_50000.csv")
     
     if os.path.exists(csv_path):
         dataset = TokenizedDataset(csv_path)

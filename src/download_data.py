@@ -1,6 +1,6 @@
 """
-Google Colab Setup Script for CS588 Duplicate Bug Report Detection
-Run this script in a Colab cell to set up the environment and download the dataset.
+Download the Eclipse and Thunderbird data and extract it to datasets/.
+Run from the repository root: python src/download_data.py
 """
 
 import os
@@ -21,20 +21,13 @@ def run_command(cmd, description=""):
     return result.returncode
 
 def setup_environment():
-    """Complete setup for Google Colab environment."""
+    """Download and extract the dataset into datasets/."""
     
     print("\n" + "="*60)
-    print("🚀 CS588 Duplicate Bug Report Detection - Setup")
+    print("🚀 Graph-enhanced DBD - data setup")
     print("="*60)
     
-    # 1. Install dependencies
-    if run_command("pip install -q -r requirements.txt", 
-                   "Installing dependencies...") != 0:
-        print("❌ Failed to install dependencies")
-        return False
-    print("✅ Dependencies installed successfully")
-    
-    # 2. Download dataset
+    # 1. Download dataset
     dataset_url = "https://drive.google.com/uc?id=1ef68tggrWtdrUv-Bb2l-E2yUVlo8yKgA"
     if run_command(f"gdown {dataset_url}", 
                    "Downloading dataset from Google Drive...") != 0:
@@ -42,18 +35,18 @@ def setup_environment():
         return False
     print("✅ Dataset downloaded successfully")
     
-    # 3. Create datasets directory
+    # 2. Create datasets directory
     os.makedirs("datasets", exist_ok=True)
     print("✅ Created datasets directory")
     
-    # 4. Extract dataset
+    # 3. Extract dataset
     if run_command("tar -xzf dataset.tar.gz -C datasets/", 
                    "Extracting dataset...") != 0:
         print("❌ Failed to extract dataset")
         return False
     print("✅ Dataset extracted successfully")
     
-    # 5. Verify extraction
+    # 4. Verify extraction
     print("\n" + "="*60)
     print("📂 Verifying dataset structure...")
     print("="*60)
@@ -73,7 +66,7 @@ def setup_environment():
                 if len(files) > 10:
                     print(f"   ... and {len(files)-10} more files")
     
-    # 6. Clean up
+    # 5. Clean up
     if os.path.exists("dataset.tar.gz"):
         os.remove("dataset.tar.gz")
         print("\n✅ Cleaned up temporary files")
@@ -82,10 +75,9 @@ def setup_environment():
     print("✨ Setup completed successfully!")
     print("="*60)
     print("\n📚 Next steps:")
-    print("   1. To train baseline models: !python train-baselines.py")
-    print("   2. To train GNN model: !python train-ours.py")
+    print("   1. To train baseline models: python src/train_baselines.py")
+    print("   2. To train GNN model: python src/train_ours.py")
     print("   3. Check 'checkpoints/' directory for results")
-    print("\n💡 Tip: Modify hyperparameters directly in the training scripts")
     print("="*60 + "\n")
     
     return True
